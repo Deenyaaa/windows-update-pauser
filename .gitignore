@@ -1,0 +1,18 @@
+# Кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Настройки сред разработки (PyCharm, VS Code)
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Виртуальное окружение (если используете)
+venv/
+.venv/
+env/
