@@ -1,34 +1,65 @@
+import ctypes
+import logging
+import os
 import sys
 import winreg
 from datetime import datetime, timedelta, timezone
 
+PAUSE_DAYS = 14
+REG_PATH = r"SOFTWARE\Microsoft\WindowsUpdate\UX\Settings"
+LOG_DIR = os.path.join(os.environ.get("ProgramData", r"C:\ProgramData"), "PostponeWinUpdate")
+
+os.makedirs(LOG_DIR, exist_ok=True)
+logging.basicConfig(
+    filename=os.path.join(LOG_DIR, "log.txt"),
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    encoding="utf-8",
+)
+
+
 def is_admin():
     try:
-        import ctypes
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
+        return bool(ctypes.windll.shell32.IsUserAnAdmin())
+    except Exception:
         return False
 
-if not is_admin():
-    print("Запустите скрипт от имени Администратора!")
-    sys.exit()
 
-# Настройки времени
-now = datetime.now(timezone.utc)
-start_time = now.strftime("%Y-%m-%dT%H:%M:%SZ")
-expiry_time = (now + timedelta(days=7)).strftime("%Y-%m-%dT%H:%M:%SZ")
+def main():
+    if not is_admin():
+        logging.error("Нет прав администратора")
+        return 1
 
-registry_path = r"SOFTWARE\Microsoft\WindowsUpdate\UX\Settings"
+    fmt = "%Y-%m-%dT%H:%M:%SZ"
+    now = datetime.now(timezone.utc)
+    start = now.strftime(fmt)
+    expiry = (now + timedelta(days=PAUSE_DAYS)).strftime(fmt)
 
-try:
-    key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, registry_path, 0, winreg.KEY_SET_VALUE)
+    values = {
+        "PauseUpdatesStartTime": start,
+        "PauseUpdatesExpiryTime": expiry,
+        "PauseFeatureUpdatesStartTime": start,
+        "PauseFeatureUpdatesEndTime": expiry,
+        "PauseQualityUpdatesStartTime": start,
+        "PauseQualityUpdatesEndTime": expiry,
+    }
 
-    winreg.SetValueEx(key, "PauseUpdatesStartTime", 0, winreg.REG_SZ, start_time)
-    winreg.SetValueEx(key, "PauseUpdatesExpiryTime", 0, winreg.REG_SZ, expiry_time)
-    winreg.SetValueEx(key, "PauseFeatureUpdatesStartTime", 0, winreg.REG_SZ, start_time)
-    winreg.SetValueEx(key, "PauseQualityUpdatesStartTime", 0, winreg.REG_SZ, start_time)
+    try:
+        with winreg.CreateKeyEx(
+            winreg.HKEY_LOCAL_MACHINE,
+            REG_PATH,
+            0,
+            winreg.KEY_SET_VALUE | winreg.KEY_WOW64_64KEY,
+        ) as key:
+            for name, value in values.items():
+                winreg.SetValueEx(key, name, 0, winreg.REG_SZ, value)
+    except OSError:
+        logging.exception("Ошибка записи в реестр")
+        return 1
 
-    winreg.CloseKey(key)
-    print(f"Готово. Пауза обновлений сдвинута до {expiry_time}")
-except Exception as e:
-    print(f"Ошибка записи в реестр: {e}")
+    logging.info("Пауза продлена до %s", expiry)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
