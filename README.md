@@ -1,5 +1,27 @@
 # Windows Update Pauser ⏳
 
+> **English summary.** A small Python tool that keeps Windows Update paused
+> indefinitely without disabling any system services. On every run it writes the
+> pause start/end timestamps (now and now + 14 days, UTC) to
+> `HKLM\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings` — the same values the
+> Settings app uses for "Pause updates". A Task Scheduler job running as SYSTEM
+> launches it daily at 12:00 and at every startup (missed runs are caught up),
+> so the deadline always stays about 14 days away.
+>
+> Build a standalone `PostponeWinUpdate.exe` with PyInstaller (command below),
+> then run `install_task.bat` as administrator: it copies the exe to
+> `C:\Program Files\PostponeWinUpdate\`, registers the task and runs it once.
+> `uninstall_task.bat` removes the task, the program, the logs and the pause
+> values, so updates resume. Log: `C:\ProgramData\PostponeWinUpdate\log.txt`.
+> Requires Windows 10/11 x64 and admin rights.
+>
+> **Caveats:** the registry pause mechanism is undocumented and may change in
+> future Windows builds; an unsigned PyInstaller exe that edits the registry may
+> be flagged by antivirus. On Pro editions, the official alternative is the
+> update deferral policies in `gpedit.msc`. Pausing updates indefinitely means
+> missing security fixes — lift the pause and install them periodically.
+> Documentation below is in Russian.
+
 Скрипт на Python для автоматического продления паузы обновлений Windows. Позволяет удерживать систему в состоянии приостановки обновлений без отключения системных служб.
 
 ## ⚙️ Как это работает
