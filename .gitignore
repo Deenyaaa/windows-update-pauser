@@ -20,3 +20,6 @@ build/
 
 # Конфигурация installer
 *.spec
+
+# Собранный exe — прикладывается к GitHub Releases, в git не хранится
+builds/*.exe

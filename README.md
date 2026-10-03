@@ -8,8 +8,10 @@
 > launches it daily at 12:00 and at every startup (missed runs are caught up),
 > so the deadline always stays about 14 days away.
 >
-> Build a standalone `PostponeWinUpdate.exe` with PyInstaller (command below),
-> then run `install_task.bat` as administrator: it copies the exe to
+> Download `PostponeWinUpdate.exe` from
+> [Releases](https://github.com/Deenyaaa/windows-update-pauser/releases) (or build
+> it with PyInstaller, command below) and put it into `builds/`, then run
+> `install_task.bat` as administrator: it copies the exe to
 > `C:\Program Files\PostponeWinUpdate\`, registers the task and runs it once.
 > `uninstall_task.bat` removes the task, the program, the logs and the pause
 > values, so updates resume. Log: `C:\ProgramData\PostponeWinUpdate\log.txt`.
@@ -20,7 +22,7 @@
 > be flagged by antivirus. On Pro editions, the official alternative is the
 > update deferral policies in `gpedit.msc`. Pausing updates indefinitely means
 > missing security fixes — lift the pause and install them periodically.
-> Documentation below is in Russian.
+> Documentation below is in Russian. License: [MIT](./LICENSE).
 
 Скрипт на Python для автоматического продления паузы обновлений Windows. Позволяет удерживать систему в состоянии приостановки обновлений без отключения системных служб.
 
@@ -60,8 +62,10 @@
 * `main.py` — основной скрипт, продлевающий паузу в реестре.
 * `install_task.bat` — установщик: копирует программу и регистрирует задачу в Планировщике.
 * `uninstall_task.bat` — полное удаление: задача, программа, логи и параметры паузы в реестре.
-* `.gitignore` — исключения для Git (кэш, файлы `*.spec`, папки сборки и виртуального окружения).
+* `builds/` — сюда кладётся `PostponeWinUpdate.exe` (из Releases или после сборки); в git не хранится.
+* `.gitignore` — исключения для Git (кэш, файлы `*.spec`, папки сборки и виртуального окружения, собранный exe).
 * `README.md` — документация проекта.
+* `LICENSE` — лицензия MIT.
 
 ## 📦 Сборка .exe
 
@@ -84,7 +88,8 @@
 
 ## 🛠️ Установка
 
-1. Убедитесь, что `PostponeWinUpdate.exe` находится в папке `builds/`.
+1. Скачайте `PostponeWinUpdate.exe` со страницы [Releases](https://github.com/Deenyaaa/windows-update-pauser/releases)
+   (или соберите сами, см. выше) и положите его в папку `builds/` рядом с `install_task.bat`.
 2. Нажмите правой кнопкой мыши на **`install_task.bat`**.
 3. Выберите **«Запуск от имени администратора»**.
 
